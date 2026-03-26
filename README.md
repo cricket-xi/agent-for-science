@@ -1,20 +1,240 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+核心产品需求文档 (PRD)：科研选题副驾子系统 v1.0
 
-# Run and deploy your AI Studio app
+文档状态： 已评审  |  产品负责人： [您的名字]  |  目标发版： v1.0 MVP
 
-This contains everything you need to run your app locally.
+一、 产品概述与背景 (Product Overview)
 
-View your app in AI Studio: https://ai.studio/apps/0e6e27e3-4dbf-422f-995b-5bda59dbbc36
+1.1 产品背景
 
-## Run Locally
+在计算机科学（CS）领域，前沿技术迭代极快（如大语言模型、多智能体等）。刚入学的研一新生在开题阶段普遍面临“想做前沿，但受限于实验室算力”以及“想法太宽泛，抓不住创新空白点”的困境。传统的海量阅读和导师盲目碰撞效率极低。
 
-**Prerequisites:**  Node.js
+1.2 产品定位
+
+“科研选题副驾 (Research Topic Copilot)” 是一款专为 CS 领域研究生打造的 AI 辅助开题工具。它坚持“辅助而非替代”的原则，通过意图降噪、带客观约束的检索、创新点计算，帮助学生在 30 分钟内完成从“模糊想法”到“高可行性候选方向”的收敛。
+
+1.3 目标用户与核心痛点
+
+目标用户： 计算机专业（CS）研一新生（重点切入 AI/NLP/CV/System 领域）。
+
+核心痛点 (Pain Points)：
+
+想法太空泛： 缺乏学术抽象能力，不知如何将“大白话想法”收敛为可执行的课题。
+
+资源无概念： 盲目追热点，极易选到需要海量算力（如数百张 A100）的“大厂专属课题”，导致工程烂尾。
+
+文献信噪比低： arXiv 每天新增数百篇论文，新手难以分辨核心 Baseline 和水文，极易撞车。
+
+二、 系统边界与架构 (System Boundaries)
+
+为了保证系统的工程落地性和输出的可信度，必须严格划定 AI Agent 的能力边界。
+
+2.1 系统能力边界
+
+✅ 系统必须做（Core Features）： 结构化检索顶级会议文献；提取文献核心要素（Baseline、数据集、开源情况）；基于客观算力约束过滤不可行方向；分析现有文献的创新空白点。
+
+❌ 系统绝对不做（Out of Scope）： 替代导师拍板确定最终选题；验证代码能否跑通或推导算法数学公式；在未受强指令的情况下进行无边界的跨学科发散（严控幻觉）。
+
+2.2 核心能力模块
+
+系统架构由四大核心模块呈线性递进支撑：
+
+需求解析与约束管理模块： 意图理解 + 资源算力验算。
+
+文献定向挖掘模块： 多源数据库 API 检索 + 规则去噪与排序。
+
+选题拆解与评估模块： 文献空白点 (Future Work) 挖掘 + 带约束的方向裂变。
+
+报告组装与输出模块： 多维对比卡片生成 + 强制风险提示。
+
+三、 核心工作流程需求 (Workflow Requirements)
+
+系统采用 “人机协同 (Human-in-the-loop)” 机制，确保检索和推导的每一步都在用户的掌控与确认之下。
+
+Step 1: 需求录入 (Input)
+
+用户通过前端表单提交初步想法与客观约束（算力、时间、文献限制等）。
+
+Step 2: 意图解析与初检 (Parse & Retrieve)
+
+Agent 将自然语言转化为学术检索 Query，调用 API 初筛 Top 20 篇文献。
+
+Step 3: 🛑 人工确认节点 (Human Confirmation)
+
+系统向用户展示提取的关键词和初筛文献列表。
+
+交互要求： 用户可手动添加/删除关键词，或勾选/剔除不感兴趣的文献。
+
+Step 4: 深度精读与比对 (Deep Read & Compare)
+
+Agent 抓取用户确认后的文献的 Abstract 和 Conclusion，提取空白点并进行查重比对。
+
+Step 5: 带约束的选题裂变 (Constraint-based Generation)
+
+Agent 结合 Step 1 中的“算力红线”，强制裂变出 3 个具有差异化的候选研究方向。
+
+Step 6: 报告生成与交付 (Report Output)
+
+组装结构化《选题分析报告》并输出，提供源文献与代码的超链接溯源。
+
+四、 功能需求与交互详情 (Functional Specifications)
+
+4.1 用户输入表单 (Input Constraints)
+
+为了降低大模型的发散率，前端输入必须强制结构化。
+
+【必填项】
+
+研究领域： 下拉单选（如：NLP, CV, Multi-Agent, System 等）。
+
+初步想法： 自由文本框（例：“想研究多个 AI 智能体怎么合作写代码”）。
+
+【选填项 - 极其重要的客观约束】
+
+硬件与算力约束： 自由文本框（例：“实验室仅有单张 RTX 3090 24G 显卡”）。
+
+时间与来源限制： 下拉多选/文本（例：“近 2 年，限 CCF A/B 类及高引 arXiv”）。
+
+4.2 输出物设计：《选题分析报告》 (Output Report)
+
+系统最终输出的报告需具备极高的执行参考价值，包含以下四大板块：
+
+【板块一】核心文献清单 (High-Signal Baseline)：
+
+展示 3-5 篇最相关的精读文献。
+
+字段要求：标题、来源/年份（标明 CCF 级别）、核心方法提炼、开源情况（必须附带 PapersWithCode 或 GitHub 链接）。
+
+【板块二】候选选题方向 (Candidate Directions)：
+
+按照难度和风险分级，提供 3 个具体方向。
+
+字段要求：方向名称、创新点阐述（说明补足了哪些现有文献的空白）、具体实现路径（强调在受限算力下的实现方案，如使用 LoRA）。
+
+【板块三】可行性评分雷达表 (Feasibility Radar)：
+
+对候选方向进行 5 分制打分对比。
+
+评估维度必须包含：创新度、算力匹配度、数据获取难度。
+
+【板块四】高亮风险提示 (Risk Warnings)：
+
+强制生成的学术与工程风险预警。
+
+示例：“⚠️大厂降维打击风险：该领域 OpenAI 极度关注，建议侧重‘协作机制’而非绝对准确率，防范 GPT-5 发布后直接秒杀您的课题。”
+
+五、 数据源与防幻觉策略 (Data & Trust)
+
+5.1 指定数据源接入
+
+Semantic Scholar API： 主数据源，支持引用关系网络和高亮观点提取。
+
+DBLP 数据库： 用于精准核对会议与期刊级别（CCF A/B/C），防止水会混入。
+
+PapersWithCode： 用于判别论文是否开源代码和数据集（计算机领域强需求）。
+
+5.2 观点冲突处理与溯源防幻觉
+
+冲突处理机制： 当多篇文献观点相左时（如 A 说某方法有效，B 说无效），Agent 禁止做对错裁判，必须采用“并列陈述 + 维度拆解”的方式进行客观提示。
+
+强制推导溯源： 报告中的每一个推导方向，必须明确标出来源。例如：“本方向基于 [文献 A] 第 6 节 Future Work 推导得出”。
+
+六、 成功评估指标 (Metrics & OKRs)
+
+指标维度
+
+指标名称
+
+定义与计算方式
+
+预期目标 (MVP阶段)
+
+核心业务
+
+选题方向采纳率 (Adoption Rate)
+
+报告生成 1 个月后问卷回访，用户最终开题报告采纳（或微调）Agent 推荐方向的比例。
+
+> 35%
+
+效率提升
+
+开题定基调时间缩减度
+
+用户从“有初步想法”到“确定 Baseline 和大概切入点”所花费的时间。
+
+从平均 2周 缩短至 3天 内
+
+工程质量
+
+无效发散拦截率
+
+Agent 成功拦截并过滤掉不符合用户“硬件约束”方向的次数占比（对比日志初稿与终稿）。
+
+> 90%
+
+七、 项目演进路线图 (Roadmap)
+
+秉持“小步快跑，敏捷迭代”的原则，产品演进分为三个核心阶段：
+
+Phase 1：v1.0 MVP（当前版本）—— 跑通核心链路
+
+主打单次检索与静态报告生成，解决“想法发散、算力不匹配”的核心痛点。
+
+Phase 2：v2.0 深度协作 —— 引入动态推演与生态打通
+
+多轮追问 (Chat Mode)： 支持用户针对报告中的某个具体方向继续深挖（例：“帮我把方向 A 细化成实验步骤”）。
+
+工具链接入： 打通 Zotero、Mendeley 等主流文献管理软件，支持一键将核心 Baseline 导入本地知识库。
+
+Phase 3：v3.0 实验室级 SaaS —— 导师视角与进度管理
+
+导师协同审核： 提供导师端，支持导师在 Agent 生成的报告上直接批注、否决或指派新约束条件。
+
+开题一键排版： 将最终确定的方向一键导出为符合高校规范的 LaTeX/Word 开题报告初稿。
+
+八、 商业模式与推广策略 (GTM & Monetization)
+
+8.1 推广与冷启动策略 (Go-to-Market)
+
+内容营销 (Content SEO)： 在知乎、小红书发布类似《计算机研一防坑：如何避免选到需要 100 张卡的开题方向？》等爆款图文，精准引流。
+
+KOC 合作： 赞助 GitHub 上的开源项目维护者或 B站 CS 学术区 UP 主，通过“好用的开题神器”进行软植入。
+
+高校裂变： 推出“邀请同门/室友注册，免费解锁 1 次深度生成”的裂变机制。
+
+8.2 商业化路径 (Monetization)
+
+C 端免费增值 (Freemium)： * 基础版：每月免费 3 次轻量级检索生成，使用基础大模型。
+
+Pro 版（订阅制）：9.9元/月。解锁顶级推理模型（如 Claude-3.5-Sonnet）、无限次文献抓取、LaTeX 格式导出。
+
+B 端实验室版 (B2B SaaS)： * 按实验室年度采购（如 2999元/年）。支持挂载该实验室独有的“私有代码资产、硬件算力清单、过往学姐学长的组会 PPT”，让 Agent 的推荐完全基于实验室私有资源底座。
+
+九、 非功能性需求 (Non-Functional Requirements)
+
+性能要求： 由于涉及大模型推理与多次 API 调用，从用户提交表单到渲染出完整《选题分析报告》，系统 P90 响应时间需控制在 45 秒 以内。需采用流式输出 (Server-Sent Events) 缓解用户等待焦虑。
+
+数据隐私与合规（极其重要）： 学术 idea 属于高度敏感资产。系统必须明确向用户声明：用户的任何输入和 preliminary ideas 绝对不会被用作底层模型的预训练数据。所有数据需进行脱敏化加密存储。
+
+附录：核心 Prompt 与接口定义参考 (Technical Appendix)
+
+此部分主要供 AI 算法与后端工程师参考，确保模型行为符合 PRD 预期。
+
+A1. 选题裂变节点系统提示词 (System Prompt 节选)
+
+# Role: 极度务实、反感学术幻觉的资深 CS 导师。
+# Context: 已有文献总结 [${literature_summaries}], 用户想法 [${user_idea}], 算力约束 [${hardware_constraints}]。
+# Task: 交叉碰撞生成 3 个差异化研究方向。
+# ⚠️ 绝对红线 (Constraints): 
+1. 绝对禁止推荐超出 ${hardware_constraints} 的方案（如要求单卡 24G 却推荐从头预训练）。
+2. 方案必须可通过轻量微调（LoRA）、Prompt工程或无训练方法落地。
+# Output: 严格按 JSON 格式输出，包含方向名、创新点、实现路径、多维打分与风险预警。
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+A2. 核心后端接口 (RESTful API)
+
+POST /api/v1/agent/generate_topic_report
+
+Request Body: {"domain": "...", "user_idea": "...", "constraints": {"gpu": "...", "time_limit": "..."}}
+
+Response: 返回包含 confirmed_papers 和 candidate_directions 的结构化 JSON，供前端渲染报告和雷达图。
