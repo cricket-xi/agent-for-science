@@ -1,8 +1,9 @@
 核心产品需求文档 (PRD)：科研选题副驾子系统 v1.0
 
 文档状态： 已评审  |  产品负责人： 张文熙  |  目标发版： v1.0 MVP
-https://ai.studio/apps/0e6e27e3-4dbf-422f-995b-5bda59dbbc36
-一、 产品概述与背景 (Product Overview)
+
+
+一、 产品概述与背景 (Product Overview)https://ai.studio/apps/0e6e27e3-4dbf-422f-995b-5bda59dbbc36
 
 1.1 产品背景
 
