@@ -1,0 +1,5 @@
+{
+  "name": "科研选题副驾 (Research Topic Copilot)",
+  "description": "专为 CS 领域研究生打造的 AI 辅助开题工具，根据兴趣和限制条件生成创新科研选题",
+  "requestFramePermissions": []
+}
